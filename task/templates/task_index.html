@@ -15,7 +15,14 @@
         </form>
         <ul id="task-list">
             {% for task in tasks %}
-                <li>{{ task.title }}</li>
+                <li>
+                    {{ task.title }}
+                    <button 
+                        class="delete-button" 
+                        data-task-id="{{ task.id }}">
+                        Delete
+                    </button>
+                </li>
             {% endfor %}
         </ul>
 
@@ -78,7 +85,40 @@
                         alert(error.message);
                     });
                 });
+                
+                taskList.addEventListener('click', (event) => {
+                    const taskList = document.getElementById('task-list');
+                    if(event.target.classList.contains('delete-button')) {
+                        const taskId = event.target.dataset.taskId;
+                        fetch(`/task/delete/${taskId}/`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            }
+                        })
+                        .then((respose) => {
+                            console.log(respose);
+                            if(!respose.ok) {
+                                throw new Error('Failed to delete task.');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if(data.success) {
+                                const taskItem = event.target.closest('li');
+                                taskItem.remove();
+                            } else {
+                                alert(data.error || 'Failed to delete task.');
+                            }
+                        })
+                        .catch(error => {
+                            alert(error.message);
+                        });
+                    }
+                });
             });
+
+
         </script>
     </body>
 </html>

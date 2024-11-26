@@ -35,3 +35,14 @@ class CreateTask(View):
             return JsonResponse({'id': task.id, 'title': task.title, 'completed': task.completed})
         else:
             return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+class DeleteTask(View):
+    def delete(self, request, *args, **kwargs):
+        id = kwargs.get('id')
+        try:
+            task = Task.objects.get(id=id)
+            task.delete()
+            return JsonResponse({'success': True}, status=200)
+        except Task.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Task not found'}, status=404)
