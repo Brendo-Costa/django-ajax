@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Task Manager</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+        <h1>Task Manager</h1>
+        <form id="task-form">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input type="text" id="task-title" placeholder="Enter a task" required>
+            <button type="submit">Add Task</button>
+        </form>
+        <ul id="task-list">
+            {% for task in tasks %}
+                <li>{{ task.title }}</li>
+            {% endfor %}
+        </ul>
+
+        <script>
+            // Handle form submission
+            {% comment %} $('#task-form').submit(function (e) {
+                e.preventDefault();
+                const title = $('#task-title').val();
+
+                $.ajax({
+                    url: "{% url 'task:create' %}",
+                    type: "POST",
+                    data: {
+                        title: title,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function (response) {
+                        $('#task-list').append(`<li>${response.title}</li>`);
+                        $('#task-title').val(''); // Clear input
+                    },
+                    error: function () {
+                        alert('Failed to add task.');
+                    }
+                });
+            }); {% endcomment %}
+
+            // Aguarda o completo carregamento dos componentes HTML antes de executar a função. 
+            document.addEventListener('DOMContentLoaded', () => {
+
+                const form = document.getElementById('task-form'); // Armazena o elemento HTML com o id 'task-form' e salva esse elemento em uma variável.
+                const taskList = document.getElementById('task-list'); // Armazena o elemento HTML com o id 'task-list' e salva esse elemento em uma variável.
+                const taskInput = document.getElementById('task-title'); // Armazena o elemento HTML com o id 'task-title' e salva esse elemento em uma variável.
+
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault(); // Impede o comportamento padrão do formulário.
+                    const title = taskInput.value; // Captura o valor do campo de entrada.
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    
+                    fetch("{% url 'task:create' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `title=${encodeURIComponent(title)}&csrfmiddlewaretoken=${csrfToken}`
+                    })
+                    .then(response => {
+                        if(!response.ok) {
+                            throw new Error('Failed to add task.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const newTask = document.createElement('li');
+                        newTask.textContent = data.title;
+                        taskList.appendChild(newTask);
+
+                        taskInput.value = '';
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>
